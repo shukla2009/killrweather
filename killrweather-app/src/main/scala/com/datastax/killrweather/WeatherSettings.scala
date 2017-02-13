@@ -69,7 +69,7 @@ final class WeatherSettings(conf: Option[Config] = None) extends Serializable {
   val SparkCheckpointDir = killrweather.getString("spark.checkpoint.dir")
 
   val CassandraHosts = withFallback[String](Try(cassandra.getString("connection.host")),
-    "spark.cassandra.connection.host") getOrElse localAddress
+    "spark.cassandra.connection.host") getOrElse "127.0.0.1"
 
   val CassandraAuthUsername: Option[String] = Try(cassandra.getString("auth.username")).toOption
     .orElse(sys.props.get("spark.cassandra.auth.username"))

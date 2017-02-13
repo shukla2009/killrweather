@@ -91,22 +91,22 @@ object Dependencies {
 
   object Compile {
 
-    val akkaStream        = "com.typesafe.akka"   %% "akka-stream-experimental"           % AkkaStreams
-    val akkaHttpCore      = "com.typesafe.akka"   %% "akka-http-core-experimental"        % AkkaStreams
+    val akkaStream        = "com.typesafe.akka"   %% "akka-stream"                        % Akka
+    val akkaHttpCore      = "com.typesafe.akka"   %% "akka-http-core"                     % "10.0.3"
     val akkaActor         = "com.typesafe.akka"   %% "akka-actor"                         % Akka
     val akkaCluster       = "com.typesafe.akka"   %% "akka-cluster"                       % Akka
     val akkaRemote        = "com.typesafe.akka"   %% "akka-remote"                        % Akka
     val akkaSlf4j         = "com.typesafe.akka"   %% "akka-slf4j"                         % Akka
     val algebird          = "com.twitter"         %% "algebird-core"                      % Albebird
     val bijection         = "com.twitter"         %% "bijection-core"                     % Bijection
-    val driver            = "com.datastax.cassandra" % "cassandra-driver-core"            % CassandraDriver driverExclusions
+    //val driver            = "com.datastax.cassandra" % "cassandra-driver-core"            % CassandraDriver driverExclusions
     val jodaTime          = "joda-time"           % "joda-time"                           % JodaTime   % "compile;runtime" // ApacheV2
     val jodaConvert       = "org.joda"            % "joda-convert"                        % JodaConvert % "compile;runtime" // ApacheV2
     val json4sCore        = "org.json4s"          %% "json4s-core"                        % Json4s          // ApacheV2
     val json4sJackson     = "org.json4s"          %% "json4s-jackson"                     % Json4s          // ApacheV2
     val json4sNative      = "org.json4s"          %% "json4s-native"                      % Json4s          // ApacheV2
     val kafka             = "org.apache.kafka"    %% "kafka"                              % Kafka kafkaExclusions // ApacheV2
-    val kafkaStreaming    = "org.apache.spark"    %% "spark-streaming-kafka"              % Spark sparkExclusions // ApacheV2
+    val kafkaStreaming    = "org.apache.spark"    %% "spark-streaming-kafka-0-8"          % Spark sparkExclusions // ApacheV2
     val logback           = "ch.qos.logback"      % "logback-classic"                     % Logback
     val scalazContrib     = "org.typelevel"       %% "scalaz-contrib-210"                 % ScalazContrib   // MIT
     val scalazContribVal  = "org.typelevel"       %% "scalaz-contrib-validation"          % ScalazContrib   // MIT
@@ -129,7 +129,7 @@ object Dependencies {
 
   val akka = Seq(akkaStream, akkaHttpCore, akkaActor, akkaCluster, akkaRemote, akkaSlf4j)
 
-  val connector = Seq(driver, sparkCassandra, sparkCatalyst, sparkCassandraEmb)
+  val connector = Seq(/*driver,*/ sparkCassandra, sparkCatalyst, sparkCassandraEmb)
 
   val json = Seq(json4sCore, json4sJackson, json4sNative)
 

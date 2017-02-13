@@ -20,7 +20,7 @@ import java.net.InetSocketAddress
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import org.reactivestreams.Publisher
-import akka.stream.{ActorFlowMaterializerSettings, ActorFlowMaterializer}
+import akka.stream.{ActorMaterializerSettings, ActorMaterializer}
 import akka.actor._
 import akka.cluster.Cluster
 import akka.util.Timeout
@@ -57,17 +57,18 @@ object KafkaDataIngestionApp extends App {
 }
 
 /**
- * Transforms raw weather data .gz files to line data and publishes to the Kafka topic.
- *
- * Simulates real time weather events individually sent to the KillrWeather App for demos.
- * @see [[HttpDataFeedActor]] for sending data files via curl instead.
- *
- * Because we run locally vs against a cluster as a demo app, we keep that file size data small.
- * Using rdd.toLocalIterator will consume as much memory as the largest partition in this RDD,
- * which in this use case is 360 or fewer (if current year before December 31) small Strings.
- *
- * The ingested data is sent to the kafka actor for processing in the stream.
- */
+  * Transforms raw weather data .gz files to line data and publishes to the Kafka topic.
+  *
+  * Simulates real time weather events individually sent to the KillrWeather App for demos.
+  *
+  * @see [[HttpDataFeedActor]] for sending data files via curl instead.
+  *
+  *      Because we run locally vs against a cluster as a demo app, we keep that file size data small.
+  *      Using rdd.toLocalIterator will consume as much memory as the largest partition in this RDD,
+  *      which in this use case is 360 or fewer (if current year before December 31) small Strings.
+  *
+  *      The ingested data is sent to the kafka actor for processing in the stream.
+  */
 final class HttpNodeGuardian extends ClusterAwareNodeGuardian with ClientHelper {
 
   cluster.joinSeedNodes(Vector(cluster.selfAddress))
@@ -110,7 +111,7 @@ final class HttpNodeGuardian extends ClusterAwareNodeGuardian with ClientHelper 
   * Publishes [[com.datastax.spark.connector.embedded.KafkaEvent.KafkaMessageEnvelope]]
   * to Kafka on a sender's behalf. Multiple instances are load-balanced in the [[HttpNodeGuardian]].
   */
-class KafkaPublisherActor(val producerConfig: ProducerConfig) extends KafkaProducerActor[String,String] {
+class KafkaPublisherActor(val producerConfig: ProducerConfig) extends KafkaProducerActor[String, String] {
 
   def this(hosts: Set[String], batchSize: Int) = this(KafkaProducer.createConfig(
     hosts, batchSize, "async", classOf[StringEncoder].getName))
@@ -130,31 +131,31 @@ class HttpDataFeedActor(kafka: ActorRef) extends Actor with ActorLogging with Cl
 
   implicit val askTimeout: Timeout = 500.millis
 
-  implicit val materializer = ActorFlowMaterializer(
-    ActorFlowMaterializerSettings(system)
+  implicit val materializer = ActorMaterializer(
+    ActorMaterializerSettings(system)
   )
 
   val requestHandler: HttpRequest => HttpResponse = {
     case HttpRequest(HttpMethods.POST, Uri.Path("/weather/data"), headers, entity, _) =>
-      HttpSource.unapply(headers,entity).collect { case hs: HeaderSource =>
+      HttpSource.unapply(headers, entity).collect { case hs: HeaderSource =>
         hs.extract.foreach({ fs: FileSource =>
           log.info(s"Ingesting {} and publishing {} data points to Kafka topic {}.", fs.name, fs.data.size, KafkaTopic)
-          kafka ! KafkaMessageEnvelope[String, String](KafkaTopic, KafkaKey, fs.data:_*)
+          kafka ! KafkaMessageEnvelope[String, String](KafkaTopic, KafkaKey, fs.data: _*)
         })
-        HttpResponse(200, entity = HttpEntity(MediaTypes.`text/html`, s"POST [${hs.sources.mkString}] successful."))
-      }.getOrElse(HttpResponse(404, entity = "Unsupported request") )
+        HttpResponse(200, entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, s"POST [${hs.sources.mkString}] successful."))
+      }.getOrElse(HttpResponse(404, entity = "Unsupported request"))
     case _: HttpRequest =>
       HttpResponse(400, entity = "Unsupported request")
   }
 
   Http(system)
     .bind(interface = HttpHost, port = HttpPort)
-    .map { case connection  =>
+    .map { case connection =>
       log.info("Accepted new connection from " + connection.remoteAddress)
       connection.handleWithSyncHandler(requestHandler)
     }
 
-  def receive : Actor.Receive = {
+  def receive: Actor.Receive = {
     case e =>
   }
 }

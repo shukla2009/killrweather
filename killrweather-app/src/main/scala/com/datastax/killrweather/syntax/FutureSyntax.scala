@@ -1,11 +1,11 @@
 package com.datastax.killrweather.syntax
 
 package object future {
+
   import scala.concurrent._
   import scalaz._
-  import scalaz.contrib.std.scalaFuture._
 
-  type FutureT[+A] = EitherT[Future, Throwable, A]
+  //type FutureT[+A] = EitherT[Future, Throwable, A]
 
   /** Avoid the need to handle Future error/timeout via callbacks by transforming the value into an EitherT, i.e.,
     * EitherT[Future, Throwable, A] === Future[Throwable \/ A]. */
@@ -19,5 +19,6 @@ package object future {
     def valueOrThrow[B](implicit ev: A <:< \/[Throwable, B]): Future[B] =
       future map (_ valueOr (throw _))
   }
+
 }
 
